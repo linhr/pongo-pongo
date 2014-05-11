@@ -55,19 +55,32 @@
 		return Math.sqrt(dx * dx + dy * dy);
 	}
 
-	var rotation = 0;
-	var direction = -1;
-	var bx = cx;
-	var by = cy;
-	var bvx = 0;
-	var bvy = ballSpeed;
-	var start = false;
-	
+	var rotation;
+	var direction;
+	var bx, by;
+	var bvx, bvy;
+	var started, failed;
+
+	function startGame() {
+		rotation = 0;
+		direction = -1;
+		bx = cx;
+		by = cy;
+		bvx = 0;
+		bvy = ballSpeed;
+		started = false;
+		failed = false;
+
+		board.setAttributeNS(null, 'transform', '');
+		ball.setAttributeNS(null, 'cx', bx);
+		ball.setAttributeNS(null, 'cy', by);
+	}
+
 	function animate() {
 		rotation = (rotation + direction * boardSpeed + 360) % 360;
 		board.setAttributeNS(null, 'transform', 'rotate(' + (-rotation) + ' ' + cx + ' ' + cy + ')');
 
-		if (!start) {
+		if (!started) {
 			return;
 		}
 
@@ -78,8 +91,12 @@
 
 		var d = distance(bx, by, cx, cy);
 		var delta = plateRadius - d;
-		if (delta >= 0 && delta < ballRadius && hit()) {
-			bounce();
+		if (delta >= 0 && delta < ballRadius) {
+			if (hit()) {
+				bounce();
+			} else {
+				failed = true;
+			}
 		}
 	}
 
@@ -97,8 +114,12 @@
 	}
 
 	container.addEventListener('click', function() {
-		if (!start) {
-			start = true;
+		if (failed) {
+			startGame();
+			return;
+		}
+		if (!started) {
+			started = true;
 		}
 		direction *= -1;
 	});
@@ -107,5 +128,6 @@
 		animate();
 		window.setTimeout(run, 1000 / frameRate);
 	}
+	startGame();
 	run((new Date()).getTime());
 })();
